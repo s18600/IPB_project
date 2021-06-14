@@ -15,8 +15,11 @@
 # Aplication:
 Siple JavaFX gui app with login, sign up forms, customer, employee/cashier and gardener dashborads.
 No passwords are needed (project for educational purposes).
+
 -To log in as customer simple pass name into email field, and log in.
+
 -To log in as employee/cashier pass any name with '@garden.com'
+
 -To log in as gardener any name with '.gardener@garden.com'
 
 # Diagrams:
