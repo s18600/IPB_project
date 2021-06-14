@@ -22,6 +22,10 @@ public class Main extends Application {
 
     public static final ObservableList data =
             FXCollections.observableArrayList();
+    public static final ObservableList orders =
+            FXCollections.observableArrayList();
+    public static final ObservableList acceptedOrders =
+            FXCollections.observableArrayList();
     Stage dashboardStage;
     Stage primaryStage;
     boolean isCashier;
@@ -68,8 +72,13 @@ public class Main extends Application {
         logInBtn.setOnAction(e -> {
             String[] email = userTextField.getText().split("@");
             if (email[email.length - 1].equals("garden.com")) {
-                name = email[0];
-                cashierDashboard();
+                if (email[0].contains(".gardener")) {
+                    name = email[0];
+                    gardenerDashboard();
+                } else {
+                    name = email[0];
+                    cashierDashboard();
+                }
             } else {
                 name = email[0];
                 customerDashboard();
@@ -102,11 +111,11 @@ public class Main extends Application {
         grid.add(scenetitle, 0, 0, 2, 1);
 
         Button logOut = new Button("Log out");
-        Button ordersToAccept = new Button("Orders to accept");
         Button insertStationaryOrder = new Button("New stationary order");
+        Button registerNewCustomer = new Button("Register new Customer");
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
-        hbBtn.getChildren().addAll(logOut, ordersToAccept, insertStationaryOrder);
+        hbBtn.getChildren().addAll(logOut, insertStationaryOrder, registerNewCustomer);
         grid.add(hbBtn, 1, 4);
 
 
@@ -114,11 +123,56 @@ public class Main extends Application {
         grid.add(actiontarget, 1, 6);
 
         logOut.setOnAction(e -> {
+            isCashier = false;
             start(primaryStage);
         });
 
         insertStationaryOrder.setOnAction(event -> {
             newOrder();
+        });
+
+        registerNewCustomer.setOnAction(event -> {
+            signIn();
+        });
+
+
+        Scene scene = new Scene(grid, 600, 480);
+        primaryStage.setScene(scene);
+    }
+
+    private void gardenerDashboard() {
+        isCashier = true;
+        dashboardStage = new Stage();
+        dashboardStage.initOwner(primaryStage);
+        dashboardStage.setTitle("Cashier id:  " + name);
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(25, 25, 25, 25));
+
+        Text scenetitle = new Text("Cashier account: " + name);
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        grid.add(scenetitle, 0, 0, 2, 1);
+
+        Button logOut = new Button("Log out");
+        Button ordersToAccept = new Button("Orders to accept");
+        HBox hbBtn = new HBox(10);
+        hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
+        hbBtn.getChildren().addAll(logOut, ordersToAccept);
+        grid.add(hbBtn, 1, 4);
+
+
+        final Text actiontarget = new Text();
+        grid.add(actiontarget, 1, 6);
+
+        logOut.setOnAction(e -> {
+            isCashier = false;
+            start(primaryStage);
+        });
+
+        ordersToAccept.setOnAction(event -> {
+            orders();
         });
 
 
@@ -142,11 +196,11 @@ public class Main extends Application {
         grid.add(scenetitle, 0, 0, 2, 1);
 
         Button log_out = new Button("Log out");
-        Button ordersToAccept = new Button("Check orders details");
-        Button insertStationaryOrder = new Button("New order");
+        Button checkOrdersDetails = new Button("Check orders details");
+        Button newOrder = new Button("New order");
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
-        hbBtn.getChildren().addAll(log_out, ordersToAccept, insertStationaryOrder);
+        hbBtn.getChildren().addAll(log_out, checkOrdersDetails, newOrder);
         grid.add(hbBtn, 1, 4);
 
 
@@ -155,6 +209,14 @@ public class Main extends Application {
 
         log_out.setOnAction(e -> {
             start(primaryStage);
+        });
+
+        checkOrdersDetails.setOnAction(event -> {
+            customerOrders();
+        });
+
+        newOrder.setOnAction(event -> {
+            newOrder();
         });
 
 
@@ -206,11 +268,19 @@ public class Main extends Application {
         grid.add(actiontarget, 1, 6);
 
         back.setOnAction(e -> {
-            start(primaryStage);
+            if (isCashier) {
+                cashierDashboard();
+            } else {
+                start(primaryStage);
+            }
         });
 
         sign_in.setOnAction(e -> {
-            start(primaryStage);
+            if (isCashier) {
+                cashierDashboard();
+            } else {
+                start(primaryStage);
+            }
         });
 
 
@@ -255,12 +325,130 @@ public class Main extends Application {
         Button submit = new Button("Submit");
         grid.add(submit, 1, 3);
 
-        submit.setOnAction(event -> {
+        Button back = new Button("Back");
+        grid.add(back, 1, 4);
+
+        back.setOnAction(e -> {
+            data.clear();
             if (isCashier) {
                 cashierDashboard();
+            } else {
+                customerDashboard();
             }
         });
 
+        submit.setOnAction(event -> {
+            if (isCashier) {
+                data.add("\nStationary order: " + name);
+            } else {
+                data.add("\nCustomer name: " + name);
+            }
+            orders.add(listView.getItems().toString());
+            data.clear();
+            if (isCashier) {
+                cashierDashboard();
+            } else {
+                customerDashboard();
+            }
+        });
+
+
+        Scene scene = new Scene(grid, 600, 480);
+        primaryStage.setScene(scene);
+    }
+
+    private void orders() {
+        dashboardStage = new Stage();
+        dashboardStage.initOwner(primaryStage);
+        dashboardStage.setTitle("Cashier id:  ");
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(25, 25, 25, 25));
+
+        final ListView listView = new ListView(orders);
+        listView.setPrefSize(200, 250);
+        listView.setEditable(true);
+
+        listView.setItems(orders);
+
+        grid.getChildren().add(listView);
+
+        Button accept = new Button("accept first order from the list");
+        grid.add(accept, 0, 1);
+
+        Button decline = new Button("decline first order from the list");
+        grid.add(decline, 0, 2);
+
+        accept.setOnAction(e -> {
+            if (orders.size() > 0) {
+                acceptedOrders.add(orders.get(0));
+                orders.remove(0);
+            }
+        });
+
+        decline.setOnAction(e -> {
+            if (orders.size() > 0) {
+                orders.remove(0);
+            }
+        });
+
+
+        Button back = new Button("Back");
+        grid.add(back, 1, 4);
+
+        back.setOnAction(e -> {
+            data.clear();
+            gardenerDashboard();
+        });
+
+        Scene scene = new Scene(grid, 600, 480);
+        primaryStage.setScene(scene);
+    }
+
+    private void customerOrders() {
+        dashboardStage = new Stage();
+        dashboardStage.initOwner(primaryStage);
+        dashboardStage.setTitle("Cashier id:  ");
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(25, 25, 25, 25));
+
+
+        final ListView listView = new ListView(orders);
+        listView.setPrefSize(200, 250);
+        listView.setEditable(true);
+
+        ObservableList cOrders = FXCollections.observableArrayList();
+
+        acceptedOrders.forEach((order) -> {
+            String[] o = order.toString().split(":");
+            String[] o1 = o[o.length - 1].trim().split("]");
+            if (o1[0].equals(name)) {
+                cOrders.add(order);
+            }
+        });
+
+        listView.setItems(cOrders);
+
+        grid.getChildren().add(listView);
+
+
+        Button back = new Button("Back");
+        grid.add(back, 1, 4);
+        grid.add(new Label("Accepted"), 1, 0);
+
+        back.setOnAction(e -> {
+            cOrders.clear();
+            if (isCashier) {
+                cashierDashboard();
+            } else {
+                customerDashboard();
+            }
+        });
 
         Scene scene = new Scene(grid, 600, 480);
         primaryStage.setScene(scene);
